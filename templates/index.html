@@ -1,0 +1,164 @@
+{% load static %}
+<!DOCTYPE html>
+<html >
+<head>
+  <meta charset="UTF-8">
+  <title>Fantasy Movie</title>
+    <link rel="icon" type="image/gif/png" href="{% static "images/fantasy_logo2.png" %}" />
+  <link href='http://fonts.googleapis.com/css?family=Titillium+Web:400,300,600' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
+
+ <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script> 
+<script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+
+    <script src="{% static 'js/index.js'%}"></script>     <link rel="stylesheet" href="{% static "css/style.css" %}">
+
+</head>
+
+<body>
+  <div class="form">
+      <div style="text-align: center">
+        <img src="{%static 'images/fantasy_logo2.png'%}" width="40%" height="40%" align="middle">
+      </div>
+
+      <ul class="tab-group" id="tab_id">
+
+        <li class="tab active"><a href="#login">Log In</a></li>
+         <li class="tab "><a href="#signup">Sign Up</a></li>
+         <!--<li class="tab "><a href="#forget-password">forget</a></li>-->
+      </ul>
+
+ 
+      <div class="tab-content" id="login_signup_div">
+
+             <div class="alert alert-danger alert-dismissable fade in" style="display: {{block}}">
+    <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+    <strong>{{message}}</strong>
+  </div>
+
+        <div id="login">
+          <h1>Welcome Back!</h1>
+          <form action="/web/login/login_auth/" method="post">{%csrf_token%}
+          <input type="hidden" value="web" name="user_type">
+            <div class="field-wrap">
+            <input type="email" name="email" placeholder="Email Address *" required autocomplete="on"/>
+          </div>
+
+          <div class="field-wrap">
+            <input type="password" name="password" placeholder="password *" required autocomplete="on"/>
+          </div>
+          <p> <a class="pull-right text-muted" href="#" id="olvidado"><small>Forgot your password?</small></a></p>
+          <input type="submit" value="Log In" class="button button-block">
+          <!--<button class="button button-block"/>Log In</button>-->
+
+          </form>
+
+        </div>
+        <div id="signup">
+
+          <form  action="/web/signup/" method="post">{%csrf_token%}
+
+          <div class="top-row">
+            <div class="field-wrap">
+
+              <input type="text" name="Fname" placeholder="First Name *" required autocomplete="on" />
+            </div>
+
+            <div class="field-wrap">
+
+              <input type="text" name="lname" placeholder="Last Name *" required autocomplete="on"/>
+            </div>
+          </div>
+
+          <div class="field-wrap">
+
+            <input type="email" name="email" placeholder="Email Address *" required autocomplete="on"/>
+          </div>
+
+          <div class="field-wrap">
+
+            <input type="password"name="password" placeholder="Set a password *" required autocomplete="on"/>
+          </div>
+
+          <input type="submit" class="button button-block" value="Get Started"/>
+          </form>
+
+        </div>
+      </div>
+
+   <div style="display: none;" id="form-forgetpass">
+
+    <form id="login-recordar" action="" method="post">{%csrf_token%}
+          <h1 class="">
+      Forgot your password?
+    </h1>
+      <fieldset>
+        <span class="help-block">
+          Email address you use to log in to your account
+          <br>
+          We'll send you an OTP in email.
+        </span>
+         <div class="field-wrap">
+
+            <input type="email" name="email" placeholder="Registered Email Address *" id="forget_email" required autocomplete="off"/>
+          </div>
+
+          <button type="submit" class="button button-block" id="forget_form">SEND</button>
+        <p class="help-block">
+          <a class="text-muted" href="#" id="login-again"><small>LOGIN </small></a>
+        </p>
+      </fieldset>
+    </form>
+  </div>
+ <!-- /form -->
+  <script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+
+    <script src="{% static 'js/index.js'%}"></script>
+
+<script>
+
+$(document).ready(function() {
+  $('#olvidado').click(function(e) {
+    e.preventDefault();
+    $('div#form-forgetpass').toggle('500');
+    $('div#login_signup_div').toggle('500');
+    $('#tab_id').toggle('500');
+  });
+  $('#login-again').click(function(e) {
+    e.preventDefault();
+     $('div#form-forgetpass').toggle('500');
+    $('div#login_signup_div').toggle('500');
+    $('#tab_id').toggle('500');
+  });
+    $('#forget_form').click(function(e) {
+        //alert("hii");
+//		alert(  '{{ csrf_token }}');
+
+
+
+e.preventDefault();
+
+$.ajax({
+    url: '/web/forget_pass/',
+    type: 'POST',
+    data: {
+        email: $('#forget_email').val() ,
+        csrfmiddlewaretoken:  '{{ csrf_token }}'},
+
+    async: false,
+    success: function(msg) {
+        alert("success");
+        window.location.href = '/web/forget_pass/';
+    },
+    error:function (e) {
+            window.location.href = '/web/forget_pass/';
+    }
+});
+});
+});
+</script>
+</body>
+</html>

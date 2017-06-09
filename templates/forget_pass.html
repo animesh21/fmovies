@@ -1,0 +1,49 @@
+{% load static %}
+<!DOCTYPE html>
+<html >
+<head>
+  <meta charset="UTF-8">
+  <title>Sign-Up/Login Form</title>
+  <link href='http://fonts.googleapis.com/css?family=Titillium+Web:400,300,600' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
+
+
+      <link rel="stylesheet" href="{% static "css/style.css" %}">
+
+
+</head>
+
+<body>
+  <div class="form">
+         <div style="text-align: center">
+<img src="{%static 'images/fantasy_logo2.png'%}" width="40%" height="40%" align="middle">
+
+      </div>
+           <ul class="tab-group">
+
+        <li class="tab active"><a href="" style="width: 100%">Reset Password</a></li>
+           </ul>
+     <form  action="/web/reset_pass/" method="POST">{%csrf_token%}
+
+      <br><br>
+	<div class="field-wrap">
+            <input type="password" placeholder="otp *" name="otp" required autocomplete="off"/>
+          </div>
+
+
+          <div class="field-wrap">
+
+            <input  type="password" placeholder="New Password *" name="new_password" required autocomplete="off"/>
+          </div>
+
+          <div class="field-wrap">
+
+            <input type="password" placeholder="Confirm Password *" name="confirm_password" required autocomplete="off"/>
+          </div>
+
+          <input type="submit" class="button button-block" value="Reset"/>
+          </form>
+
+  </div>
+</body>
+</html>

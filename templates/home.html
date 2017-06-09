@@ -1,0 +1,160 @@
+{% extends 'home_base.html' %}
+
+{%block content%}
+<img class = "loader" id ="ld" src="/static/images/rotellina.gif" width="140" height="140">
+
+                                    <div class="well">
+                                   <form class="form" id="movie_search_form">
+                                    <h4>Search movies</h4>
+                                    <div class="input-group text-center">
+
+                                        {{ search_form}}
+
+                                      <span class="input-group-btn">
+                                          <button class="btn btn-lg btn" id = "searchbtn1" style="background-color: #1ab188" type="button">search</button>
+                                      </span>
+                                    </div>
+                                  </form>
+                                </div>
+
+
+     <div class="row">
+         <div class="col-md-12">
+                <!-- BEGIN EXAMPLE TABLE PORTLET-->
+                {% if length > 0 %}
+              <div class="portlet-body">
+                            <div class="box-table">
+                                      <table class="table table-striped table-hover table-bordered dataTable" id="example">
+                                                <thead>
+                                                <tr>
+                                                      <!--<th>Image</th>-->
+                                                      <th>Title</th>
+                                                      <th>Year</th>
+                                                      <th>Action</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                {% for movie in movies %}
+                                                          <tr>
+                                                                <!--<td width="7%"><img class="user-tumb"  height="42" width="100%" src={{ movie.poster }} ></td>-->
+                                                                <td class="title">{{ movie.title }}</td>
+                                                                <td class="year">{{ movie.year }}</td>
+                                                                <td style="display: none" class="imdb_id">{{ movie.imdb_id }}</td>
+                                                                <td>
+                                                                <a href="#" class="addmovie">Add</a>
+                                                                </td>
+
+                                                          </tr>
+                                                {% endfor %}
+                                                </tbody>
+                                      </table>
+                            </div>
+                      </div>
+
+                        <!-- END EXAMPLE TABLE PORTLET-->
+            </div>
+                      {% endif %}
+
+     </div>
+
+{% if movies.has_other_pages %}
+  <ul class="pagination">
+    {% if movies.has_previous %}
+      <li><a href="?page={{ users.previous_page_number }}">&laquo;</a></li>
+    {% else %}
+      <li class="disabled"><span>&laquo;</span></li>
+    {% endif %}
+    {% for i in movies.paginator.page_range %}
+      {% if movies.number == i %}
+        <li class="active"><span>{{ i }} <span class="sr-only">(current)</span></span></li>
+      {% else %}
+        <li><a href="?page={{ i }}">{{ i }}</a></li>
+      {% endif %}
+    {% endfor %}
+    {% if users.has_next %}
+      <li><a href="?page={{ users.next_page_number }}">&raquo;</a></li>
+    {% else %}
+      <li class="disabled"><span>&raquo;</span></li>
+    {% endif %}
+  </ul>
+{% endif %}
+
+{% endblock %}
+
+{% block myscrpit %}
+<script>
+    $(document).ready(function() {
+document.getElementById("movietitle")
+    .addEventListener("keydown", function(event) {
+//        event.preventDefault();
+
+    if (event.which == 13 || event.keyCode == 13) {
+$('#searchbtn1').click();
+
+        e.preventDefault();
+    }
+});
+
+
+
+
+        $('#searchbtn1').click(function(e) {
+
+    $('#ld').toggle('500');
+
+            e.preventDefault();
+            $.ajax(
+                    {
+                        url: '/web/searchmovie/',
+                        type: 'POST',
+                        data: {
+                            movie_title: $('#movietitle').val() ,
+                            csrfmiddlewaretoken:  '{{ csrf_token }}'
+                        },
+                        async: true,
+                        success: function(msg) {
+                                    window.location.href = '/web/searchmovie/';
+                          //  $('#ld').toggle('500');
+    }
+});
+        });
+
+$('.addmovie').on('click', function() {
+                                                                // Get the record's ID via attribute
+                var $row = $(this).closest("tr");    // Find the row
+                console.log($row);
+                var title = $row.find(".title").text(); // Find the text
+                var year = $row.find(".year").text(); // Find the text
+                var imdb_id = $row.find(".imdb_id").text(); // Find the text
+                //alert(title);
+                // Let's test it out
+                var p={
+                        'title':title,
+                        'year':year,
+                        'imdb_id':imdb_id,
+                        'csrfmiddlewaretoken': '{{ csrf_token }}'
+                        };
+                        //alert(p);
+                $.ajax(
+                        {
+                                url : "/web/addmovie/",
+                                type: "POST",
+                                data : p,
+
+                                success:function(data)
+                                {
+                                        alert("Added to My movies");
+                                       // location.reload();
+                                },
+                                error: function(jqXHR, textStatus, errorThrown)
+                                {
+                                        //if fails
+                                }
+                        }
+                );
+        });
+    });
+
+</script>
+
+{% endblock %}
