@@ -1,4 +1,5 @@
 appdirs==1.4.0
+beautifulsoup4==4.6.0
 bootstrap-admin==0.3.7.1
 CacheControl==0.12.0
 Django==1.8.17
@@ -6,6 +7,7 @@ django-admin-bootstrapped==2.5.7
 django-extensions==1.7.6
 django-filter==1.0.1
 djangorestframework==3.5.3
+html5lib==0.999999999
 imdbpie==4.2.0
 lockfile==0.12.2
 Markdown==2.6.8
@@ -14,7 +16,10 @@ olefile==0.44
 omdb==0.7.0
 packaging==16.8
 Pillow==4.0.0
+pkg-resources==0.0.0
 pyparsing==2.1.10
 requests==2.13.0
 rtsimple==0.9.0
 six==1.10.0
+webencodings==0.5.1
+wikipedia==1.4.0

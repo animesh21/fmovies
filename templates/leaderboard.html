@@ -1,85 +1,89 @@
 {% extends 'home_base.html' %}
 
-            {% block content%}
+{% block content %}
 
 
-                        <div class="well">
-                                <h4>Leaderboard</h4>
+    <div class="well">
+        <h4>Leaderboard</h4>
 
 
-                                    <div class="panel panel-default panel-table">
+        <div class="panel panel-default panel-table">
 
-                                        <div class="panel-body">
-                                            <table class="table table-striped table-bordered table-list">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Player Name</th>
-                                                        <th>Score</th>
-                                                        <th class="hidden-xs">Rank</th>
+            <div class="panel-body">
+                <table class="table table-striped table-bordered table-list">
+                    <thead>
+                    <tr>
+                        <th>Player Name</th>
+                        <th>Score</th>
+                        <th class="hidden-xs">Rank</th>
 
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                {% for i in leader_form%}
-                                                    <tr>
-                                                        <td><a href="#" data-toggle="modal" class="showmovie" data-target="#squarespaceModal">{{i.first_name}}</a></td>
-                                                        <td>{{i.score}}</td>
-                                                        <td class="hidden-xs">{{i.index}}</td>
-                                                        <td class="username" style="display: none">{{i.username}}</td>
-                                                    </tr>
-                                                {% endfor %}
-                                                </tbody>
-                                            </table>
-                                        </div>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for i in leader_form %}
+                        <tr>
+                            <td><a href="#" data-toggle="modal" class="showmovie"
+                                   data-target="#squarespaceModal">{{ i.first_name }}</a></td>
+                            <td>{{ i.score }}</td>
+                            <td class="hidden-xs">{{ i.index }}</td>
+                            <td class="username" style="display: none">{{ i.username }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
 
 
+            <div class="modal fade" id="squarespaceModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel"
+                 aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close reclose" data-dismiss="modal"><span
+                                    aria-hidden="true">×</span><span class="sr-only">Close</span></button>
+                            <h3 class="modal-title" id="lineModalLabel">Individual Score</h3>
+                        </div>
+                        <div class="modal-body">
 
-
-                                            <div class="modal fade" id="squarespaceModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-	<div class="modal-content">
-		<div class="modal-header">
-			<button type="button" class="close reclose" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">Close</span></button>
-			<h3 class="modal-title" id="lineModalLabel">Individual Score</h3>
-		</div>
-		<div class="modal-body">
-
-            <!-- content goes here -->
-			  <div class="panel-default panel-table">
-                    <div class="panel-body">
-                        <div class="table-responsive">
-                              <table class="table" id="records_table">
-                                <thead>
-                                    <tr>
-                                        <th class="hidden-xs">Movie</th>
-                                        <th>Box office</th>
-                                        <th>RT score</th>
-                                        <th>BO score</th>
-                                        <th>Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                  {% for i in mymovies_form%}
-                                            <tr><td class="hidden-xs">{{i.name}}</td>
-                                                <td>{{i.year}}</td>
-                                                <td style="display: none" >{{i.imdbid}}</td>
-                                                <td><a href="#" class="removemovie">Remove</a></td>
-
+                            <!-- content goes here -->
+                            <div class="panel-default panel-table">
+                                <div class="panel-body">
+                                    <div class="table-responsive">
+                                        <table class="table" id="records_table">
+                                            <thead>
+                                            <tr>
+                                                <th class="hidden-xs">Movie</th>
+                                                <th>Box office</th>
+                                                <th>RT score</th>
+                                                <th>BO score</th>
+                                                <th>Total</th>
                                             </tr>
-                                        {% endfor %}
-                                </tbody>
-                              </table>
+                                            </thead>
+                                            <tbody>
+                                            {% for i in mymovies_form %}
+                                                <tr>
+                                                    <td class="hidden-xs">{{ i.name }}</td>
+                                                    <td>{{ i.year }}</td>
+                                                    <td style="display: none">{{ i.imdbid }}</td>
+                                                    <td><a href="#" class="removemovie">Remove</a></td>
+
+                                                </tr>
+                                            {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" id="model_close_btn" class="btn btn-default reclose"
+                                    data-dismiss="modal">Close
+                            </button>
                         </div>
                     </div>
-              </div>
-		</div>
-	  <div class="modal-footer">
-          <button type="button" id ="model_close_btn" class="btn btn-default reclose" data-dismiss="modal">Close</button>
-        </div>
-	</div>
-  </div>
-</div>
-           <div class="pagination">
+                </div>
+            </div>
+            <div class="pagination">
     <span class="step-links">
         {% if leader_form.has_previous %}
             <a href="?page={{ leader_form.previous_page_number }}">previous</a>
@@ -93,14 +97,14 @@
             <a href="?page={{ leader_form.next_page_number }}">next</a>
         {% endif %}
     </span>
-</div>
+            </div>
 
-                                    </div>
-                        </div>
-            {% endblock %}
+        </div>
+    </div>
+{% endblock %}
 {% block myscrpit %}
-<script>
-    $(document).ready(function() {
+    <script>
+        $(document).ready(function () {
 
 
 //$( "#squarespaceModal" ).on('shown.bs.modal', function(){
@@ -108,67 +112,64 @@
 //});
 
 
+            $("#model_close_btn").click(function (e) {
 
-$("#model_close_btn").click(function(e){ 
-
-$('#records_table tbody').remove();
-
-
-});
+                $('#records_table tbody').remove();
 
 
+            });
 
-$('.showmovie').on('click', function() {
-    // Get the record's ID via attribute
+
+            $('.showmovie').on('click', function () {
+                // Get the record's ID via attribute
                 var $row = $(this).closest("tr");    // Find the row
                 var uname = $row.find(".username").text(); // Find the text
 
                 ///alert(uname);
                 // Let's test it out
 
-                var p={
-                        'username':uname,
-                        'csrfmiddlewaretoken': '{{ csrf_token }}'
+                var p = {
+                    'username': uname,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                };
+                //alert(p);
+                $.ajax(
+                    {
+                        url: "/web/showmovie/",
+                        type: "POST",
+                        data: p,
+
+                        success: function (data) {
+                            console.log(JSON.stringify(data));
+                            $('#records_table tbody').remove();
+                            var a = JSON.parse(JSON.stringify(data));
+                            response = a['movies'];
+
+                            $.each(response, function (i, item) {
+
+                                $('<tr id="feedback">').html(
+                                    "<td>" + response[i].Movies + "</td><td>" + response[i].Box_office + "</td><td>" + response[i].rtscore + "</td><td>" + response[i].boscore + "</td><td>" + response[i].totalscore).appendTo('#records_table');
+                            });
+
+                        },
+                        error: function (jqXHR, textStatus, errorThrown) {
+                            //if fails
                         }
-                        //alert(p);
-                        $.ajax(
-                        {
-                                url : "/web/showmovie/",
-                                type: "POST",
-                                data : p,
-
-                                success:function(data)
-                                {       console.log(JSON.stringify(data));
-$('#records_table tbody').remove();
-                                       var a=JSON.parse(JSON.stringify(data));
-                                        response= a['movies'];
-
-                                        $.each(response, function(i, item) {
-  
-  $('<tr id="feedback">').html(
-        "<td>" + response[i].Movies + "</td><td>" + response[i].Box_office + "</td><td>" + response[i].rtscore + "</td><td>" + response[i].boscore + "</td><td>" + response[i].totalscore).appendTo('#records_table');
-});
-
-                                },
-                                error: function(jqXHR, textStatus, errorThrown)
-                                {
-                                        //if fails
-                                }
-                        });
-        });
-$('.reclose').on('click', function() {
-    //console.log("kkkkk");
-      $('#feedback').remove();
-});
+                    });
+            });
+            $('.reclose').on('click', function () {
+                //console.log("kkkkk");
+                $('#feedback').remove();
+            });
 //$( "#squarespaceModal" ).focusout(function() {
 //    console.log("jjj");
 //});
-$('#squarespaceModal').on('hidden.bs.modal', function () {
-  // do something…
-    // console.log("jjj11111111111");
-       $('#feedback').remove();
-});
-    });
+            $('#squarespaceModal').on('hidden.bs.modal', function () {
+                // do something…
+                // console.log("jjj11111111111");
+                $('#feedback').remove();
+            });
+        });
 
-</script>
+    </script>
 {% endblock %}

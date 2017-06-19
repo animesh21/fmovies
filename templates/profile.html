@@ -13,12 +13,12 @@
                         {% csrf_token %}
                         <!-- left column -->
                         <div class="col-md-3">
-                                <div class="text-center">
-                                     <img src="{{ MEDIA_URL }}{{uobj.picture}}" onerror='this.src="{% static 'images/profilepicholder.jpg'%}"' class="avatar img-circle" alt="">
-                                    <h6>Upload a different photo...</h6>
-                                    <input type="file" name="profile" class="form-control" required>
-                                </div>
-                            <input type="submit" class="btn btn-primary" value="Upload">
+{#                                <div class="text-center">#}
+{#                                     <img src="{{ MEDIA_URL }}{{uobj.picture}}" onerror='this.src="{% static 'images/profilepicholder.jpg'%}"' class="avatar img-circle" alt="">#}
+{#                                    <h6>Upload a different photo...</h6>#}
+{#                                    <input type="file" name="profile" class="form-control" required>#}
+{#                                </div>#}
+{#                            <input type="submit" class="btn btn-primary" value="Upload">#}
                         </div>
                     </form>
                   <!-- edit form column -->

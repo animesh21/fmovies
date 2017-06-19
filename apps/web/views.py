@@ -14,6 +14,7 @@ from .utility import ImdbHandler
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.http import JsonResponse
 from django.conf import settings
+from rest_framework import status
 
 
 redirect_checker = 0
@@ -229,17 +230,20 @@ class ResetPassword(View):
                 return redirect('/web/login/?err=True&message=Invalid otp')
 
 
-class load_home_view(View):
+class HomeView(View):
     template_name = 'home.html'
     form = MovieSearchForm()
 
     def get(self, request):
         try:
             print(request.session['movie_session'])
+            top_posters = list(TopPoster.objects.all())
+            top_10 = random.sample(top_posters, 10)
             fname = User.get_user_instance(request.session['movie_session'])
             return render(request, self.template_name,
                           {'search_form': self.form, "block": "none",
-                           "fname": fname.first_name})
+                           "fname": fname.first_name,
+                           "posters": top_10})
         except Exception as e:
             return redirect('/web/login/')
 
@@ -252,7 +256,8 @@ class removemovies(View):
         mapobj = map_userMovie.objects.get(uobj__username=email,
                                            mobj__imdbid=imdbid)
         uobj = mapobj.uobj
-        uobj.score -= int(mapobj.mobj.rtscore + mapobj.mobj.boscore)
+        uobj.score -= mapobj.mobj.totalscore
+        uobj.score = round(uobj.score, 1)
         uobj.save()
         mapobj.delete()
         return JsonResponse({"status": True})
@@ -264,43 +269,73 @@ class addmovie_leaderboard(View):
     """
 
     def post(self, request):
-        try:
-            email = request.session['movie_session']
-            mapobj = map_userMovie.objects.filter(
-                uobj__username=email).aggregate(num_movies=Count('mobj'))
-            if mapobj['num_movies'] < 6:
-                print("movie can be added as num_movies = {}".format(
-                    mapobj['num_movies']))
-                d = request.POST
-                if d['imdb_id'] != '':
-                    print("Fetching movie info with IMDB id {}...".format(
-                        d['imdb_id']))
-                    a = ImdbHandler.FetchMovieByIMDBID(d['imdb_id'])
-                    print("...Done!")
-                else:
-                    a = {'rtscore': 0,
-                         "boscore": 0,
-                         "box_office": 0,
-                         "type": "upcomming"
-                         }
-                print("The movie info: {}".format(a))
-                user = User.objects.get(username=email)
-                print('hererer 1111', a)
-                movie_object = Movies.AddMovie(a)
-                print('--------------------', movie_object)
-                map = map_userMovie.objects.create(uobj=user, mobj=movie_object)
-                map.save()
-                print('hererer 3222221')
-                user.score += int(float(a['rtscore']) + float(a['boscore']))
-                user.save()
-                return JsonResponse({"status": True})
-            else:
-                return JsonResponse({"status": False,
-                                     "message": "You can't add more than 6 movies"})
 
-        except Exception as e:
-            print(e)
-            return JsonResponse({"status": False})
+        d = request.POST
+        imdbid = d['imdb_id']
+        email = request.session['movie_session']
+        mapobj = map_userMovie.objects.filter(
+            uobj__username=email).aggregate(num_movies=Count('mobj'))
+        does_exist = map_userMovie.objects.filter(
+            uobj__username=email,
+            mobj__imdbid=imdbid).exists()
+        if does_exist:
+            status_code = status.HTTP_406_NOT_ACCEPTABLE
+            data = {"message": "This movie is already in your colleciton."}
+            return JsonResponse(data=data, status=status_code)
+
+        if mapobj['num_movies'] < 6:
+            print("movie can be added as num_movies = {}".format(
+                mapobj['num_movies']))
+            force_save = int(d['force_save'])
+            print('Force save: ', force_save)
+            if imdbid != '':
+                print("Fetching movie info with IMDB id {}...".format(
+                    d['imdb_id']))
+                a = ImdbHandler.FetchMovieByIMDBID(d['imdb_id'])
+                print("...Done!")
+
+                if a['boscore'] == 0 and not force_save:
+                    data = {
+                        "message": ("Box office score is not available, so"
+                                    " it'll be set to 0. Do you still want"
+                                    " to continue?")
+                    }
+                    status_code = status.HTTP_300_MULTIPLE_CHOICES
+                    return JsonResponse(
+                        data=data,
+                        status=status_code
+                    )
+                if a['rtscore'] == 0 and not force_save:
+                    data = {
+                        "message": ("Rotten tomatoes rating not available, so it"
+                                    "'ll be set to 0. Do you still  want to"
+                                    " continue?")
+                    }
+                    status_code = status.HTTP_300_MULTIPLE_CHOICES
+                    return JsonResponse(
+                        data=data,
+                        status=status_code
+                    )
+            else:
+                a = {'rtscore': 0,
+                     "boscore": 0,
+                     "box_office": 0,
+                     "type": "upcomming"
+                     }
+            print("The movie info: {}".format(a))
+            user = User.objects.get(username=email)
+            movie_object = Movies.AddMovie(a)
+            map = map_userMovie.objects.create(uobj=user, mobj=movie_object)
+            map.save()
+            user.score += movie_object.totalscore
+            user.score = round(user.score, 1)
+            user.save()
+            return JsonResponse({"message": "Movie added successfully", "status": True})
+        else:
+            data = {"message": ("Can't add more than 6 movies, please remove"
+                                " some movies before adding new ones.")}
+            status_code = status.HTTP_406_NOT_ACCEPTABLE
+            return JsonResponse(data=data, status=status_code)
 
 
 paginator = ''
@@ -415,3 +450,15 @@ class MyMovies(View):
 
         return render(request, self.template,
                       {"mymovies_form": listofmovies, "fname": user.first_name})
+
+    def post(self, request):
+        data = request.POST
+        imdbid = data['imdbid']
+        movie = Movies.objects.get(imdbid=imdbid)
+        return JsonResponse(data={'movie': movie.name,
+                                  'bo': movie.box_office,
+                                  'rt_score': movie.rtscore,
+                                  'bo_score': movie.boscore,
+                                  'total': movie.totalscore
+                                  },
+                            status=status.HTTP_200_OK)

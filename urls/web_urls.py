@@ -10,7 +10,7 @@ urlpatterns = [
     url(r'^/$', views.load_login_page),
     url(r'/login/$', views.load_login_page),
     url(r'/login/login_auth/', views.login_auth),
-    url(r'/home/', views.load_home_view.as_view()),
+    url(r'/home/', views.HomeView.as_view()),
     url(r'/logout/', views.logout),
     url(r'/signup/', views.signup_auth),
     # url(r'/reset_password/', views.forget_page),
