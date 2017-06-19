@@ -11,7 +11,11 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterField(
+        migrations.RemoveField(
+            model_name='movies',
+            name='box_office'
+        ),
+        migrations.AddField(
             model_name='movies',
             name='box_office',
             field=models.IntegerField(default=None, null=True),
