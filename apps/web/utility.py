@@ -21,7 +21,7 @@ class ImdbHandler:
         try:
             print(title)
             movie_list = cls.imdb.search_for_title(title)
-            # print('*******************************',movie_list)
+            print('*******************************', movie_list)
             upcominglist = Upcoming_movies.getlist(title=title)
             if movie_list is None:
                 return upcominglist

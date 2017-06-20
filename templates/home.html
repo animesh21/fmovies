@@ -4,7 +4,7 @@
     <img class="loader" id="ld" src="/static/images/loader6.gif" width="140" height="140">
 
     <div class="well">
-        <form class="form" id="movie_search_form">
+        <form class="form" id="movie_search_form" method="post">
             <h4>Search movies</h4>
             <div class="input-group text-center">
 
@@ -53,7 +53,6 @@
                 </div>
 
                 <!-- END EXAMPLE TABLE PORTLET-->
-                </div>
             {% else %}
                 <h2>Top Movies</h2>
                 <div id="myCarousel" class="carousel slide" data-ride="carousel">
@@ -91,6 +90,8 @@
 
     </div>
 
+        </div>
+    </div>
     {% if movies.has_other_pages %}
         <ul class="pagination">
             {% if movies.has_previous %}
@@ -146,6 +147,7 @@
                         success: function (msg) {
                             window.location.href = '/web/searchmovie/';
                             //  $('#ld').toggle('500');
+                            console.log(msg);
                         }
                     });
             });

@@ -89,9 +89,9 @@ class User(AbstractUser):
             return False
 
     @classmethod
-    def get_user_instance(cls, email):
+    def get_user_instance(cls, usrename):
         try:
-            instance = cls.objects.get(username=email)
+            instance = cls.objects.get(username=usrename)
             return instance
         except cls.DoesNotExists:
             return None

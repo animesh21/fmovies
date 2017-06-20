@@ -4,7 +4,7 @@ from django.db.models import Count
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from apps.web.models import *
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import redirect
 from django.core.mail import send_mail
 from .serializer import ProfileUpdateSerializer
@@ -21,10 +21,9 @@ redirect_checker = 0
 
 
 def load_login_page(request):
-    try:
-        request.session['movie_session']
+    if request.session.get('movie_session'):
         return redirect('/web/home/')
-    except Exception as e:
+    else:
         err = request.GET.get('err', '')
         message = request.GET.get('message', '')
         print(err)
@@ -51,41 +50,41 @@ def login_auth(request):
         user = authenticate(username=str(data['email']),
                             password=str(data['password']))
         if user is not None and data['user_type'] == 'web':
+            login(request, user)
             request.session['movie_session'] = user.username
-            return redirect(('/web/home/'))
+            return redirect('/web/home/')
         else:
-            return redirect(('/web/login/?err=True'))
+            return redirect('/web/login/?err=True')
     else:
-        return redirect(('/web/login/'))
+        return redirect('/web/login/')
 
 
-class leaderboard(View):
+class LeaderBoardView(View):
+
     def get(self, request):
-        try:
-            request.session['movie_session']
-            email = request.session['movie_session']
-            user = User.objects.get(username=email)
-            um_obj = User.objects.filter(is_superuser=False).order_by('-score')
+        username = request.session.get('movie_session')
+        if username:
+            user = User.objects.get(username=username)
+            users = User.objects.filter(is_superuser=False).order_by('-score')
             c = 1
-            l = []
-            for i in um_obj:
-                a = {}
-                a.update({"first_name": i.first_name})
-                a.update({"index": c})
-                a.update({"username": i.username})
-                a.update({"score": i.score})
-                l.append(a)
+            user_info_list = list()
+            for user in users:
+                user_info = dict()
+                user_info.update({"first_name": user.first_name})
+                user_info.update({"index": c})
+                user_info.update({"username": user.username})
+                user_info.update({"score": user.score})
+                user_info_list.append(user_info)
                 c = c + 1
             return render(request, 'leaderboard.html',
-                          {"leader_form": l, "fname": user.first_name})
-        except Exception as e:
-            print(e)
+                          {"leader_form": user_info_list, "fname": user.first_name})
+        else:
             return redirect(('/web/login/'))
 
     def post(self, request):
         try:
-            d = request.POST
-            user = User.objects.get(username=d['username'])
+            data = request.POST
+            user = User.objects.get(username=data['username'])
             try:
                 mapobj = map_userMovie.objects.filter(uobj=user)
                 print(mapobj['mobj'])
@@ -94,13 +93,13 @@ class leaderboard(View):
             listofmovies = []
             for i in mapobj:
                 i = i.mobj
-                d = {}
-                d.update({"Movies": i.name})
-                d.update({"Box_office": i.box_office})
-                d.update({"boscore": i.boscore})
-                d.update({"rtscore": i.rtscore})
-                d.update({"totalscore": i.totalscore})
-                listofmovies.append(d)
+                data = {}
+                data.update({"Movies": i.name})
+                data.update({"Box_office": i.box_office})
+                data.update({"boscore": i.boscore})
+                data.update({"rtscore": i.rtscore})
+                data.update({"totalscore": i.totalscore})
+                listofmovies.append(data)
 
             return JsonResponse({"status": True, "movies": listofmovies})
         except Exception as e:
@@ -108,35 +107,38 @@ class leaderboard(View):
             return JsonResponse({"status": False})
 
 
-def logout(request):
-    try:
+def logout_view(request):
+    username = request.session.get('movie_session')
+    if username:
         del request.session['movie_session']
+        logout(request)
         return redirect('/web/login/')
-    except Exception as e:
-        print(e)
-        return redirect(('/web/home/'))
+    else:
+        return redirect('/web/home/')
 
 
 @csrf_exempt
 def signup_auth(request):
-    try:
-        if request.method == 'POST':
-            data = request.POST
-            uobj = User.objects.create(username=data['email'],
-                                       first_name=data['Fname'],
-                                       last_name=data['lname'],
-                                       email=data['email'],
-                                       password=data['password'])
-            uobj.save()
-            uobj.set_password(data['password'])
-            uobj.save()
-            global redirect_checker
-            redirect_checker = 1
-            return redirect('/web/login/')
-        else:
-            return redirect('/web/login/')
-    except Exception as e:
-        print(e)
+    if request.method == 'POST':
+        data = request.POST
+        username = data['email']
+        password = data['password']
+        first_name = data['Fname']
+        last_name = data['lname']
+        email = username
+        user = User.objects.create(username=username,
+                                   first_name=first_name,
+                                   last_name=last_name,
+                                   email=email)
+        user.save()
+        user.set_password(password)
+        user.save()
+        global redirect_checker
+        redirect_checker = 1
+        user = authenticate(username=username, password=password)
+        login(request, user)
+        return redirect('/web/home/')
+    else:
         return redirect('/web/login/')
 
 
@@ -147,11 +149,7 @@ def reset_password(request):
         obj = otp.objects.get(uobj__username=email, code=data['otp'])
         obj.uobj.password = obj.uobj.set_password(data['password'])
         obj.save()
-    return redirect(('/web/login/'))
-
-
-def test(request):
-    return render(request, 'test.html')
+    return redirect('/web/login/')
 
 
 class ForgotPassword(View):
@@ -235,45 +233,94 @@ class HomeView(View):
     form = MovieSearchForm()
 
     def get(self, request):
-        try:
-            print(request.session['movie_session'])
+        username = request.session.get('movie_session')
+        if username:
             top_posters = list(TopPoster.objects.all())
-            top_10 = random.sample(top_posters, 10)
-            fname = User.get_user_instance(request.session['movie_session'])
+            if len(top_posters) >= 10:
+                top_10 = random.sample(top_posters, 10)
+            else:
+                top_10 = top_posters
+            user = User.get_user_instance(request.session['movie_session'])
             return render(request, self.template_name,
                           {'search_form': self.form, "block": "none",
-                           "fname": fname.first_name,
+                           "fname": user.first_name,
                            "posters": top_10})
-        except Exception as e:
+        return redirect('/web/login/')
+
+
+class SearchMovie(View):
+    template_name = 'home.html'
+    form = MovieSearchForm()
+    movie_title = ''
+    statucpaginator = ''
+    paginator = Paginator(list(), 10)
+
+    def post(self, request):
+        self.movie_title = request.POST['movie_title']
+        movie_list = ImdbHandler.FetchMovieByTitle(self.movie_title)
+        self.paginator = Paginator(movie_list, 10)
+        request.session['search_title'] = self.movie_title
+        movies = self.paginator.page(1)
+        return render(request, self.template_name,
+                      {'search_form': self.form, 'block': "block",
+                       'movies': movies, 'length': len(movies)})
+
+    def get(self, request):
+        username = request.session.get('movie_session')
+        if not username:
             return redirect('/web/login/')
 
+        self.movie_title = request.session.get('search_title')
+        if not self.movie_title:
+            return redirect('/web/home/')
 
-class removemovies(View):
+        page = request.GET.get('page', 1)
+        movie_list = ImdbHandler.FetchMovieByTitle(self.movie_title)
+        self.paginator = Paginator(movie_list, 10)
+        user = User.get_user_instance(username)
+        try:
+            movies = self.paginator.page(page)
+        except PageNotAnInteger:
+            movies = self.paginator.page(1)
+        except EmptyPage:
+            movies = self.paginator.page(self.paginator.num_pages)
+        return render(request, self.template_name,
+                      {'search_form': self.form, "fname": user.first_name,
+                       'block': "block", 'movies': movies,
+                       'length': len(movies)})
+
+
+class RemoveMovieView(View):
     def post(self, request):
-        d = request.POST
-        imdbid = d['imdbid']
-        email = request.session['movie_session']
-        mapobj = map_userMovie.objects.get(uobj__username=email,
+        data = request.POST
+        imdbid = data['imdbid']
+        email = request.session.gt('movie_session')
+        if not email:
+            return redirect('/web/login/')
+
+        map_obj = map_userMovie.objects.get(uobj__username=email,
                                            mobj__imdbid=imdbid)
-        uobj = mapobj.uobj
-        uobj.score -= mapobj.mobj.totalscore
-        uobj.score = round(uobj.score, 1)
-        uobj.save()
-        mapobj.delete()
+        user = map_obj.uobj
+        user.score -= map_obj.mobj.totalscore
+        user.score = round(user.score, 1)
+        user.save()
+        map_obj.delete()
         return JsonResponse({"status": True})
 
 
-class addmovie_leaderboard(View):
+class AddMovieView(View):
     """
     This class deals with adding movies to user.
     """
 
     def post(self, request):
+        data = request.POST
+        imdbid = data['imdb_id']
+        email = request.session.get('movie_session')
+        if not email:
+            return redirect('/web/login/')
 
-        d = request.POST
-        imdbid = d['imdb_id']
-        email = request.session['movie_session']
-        mapobj = map_userMovie.objects.filter(
+        map_obj = map_userMovie.objects.filter(
             uobj__username=email).aggregate(num_movies=Count('mobj'))
         does_exist = map_userMovie.objects.filter(
             uobj__username=email,
@@ -283,18 +330,18 @@ class addmovie_leaderboard(View):
             data = {"message": "This movie is already in your colleciton."}
             return JsonResponse(data=data, status=status_code)
 
-        if mapobj['num_movies'] < 6:
+        if map_obj['num_movies'] < 6:
             print("movie can be added as num_movies = {}".format(
-                mapobj['num_movies']))
-            force_save = int(d['force_save'])
+                map_obj['num_movies']))
+            force_save = int(data['force_save'])
             print('Force save: ', force_save)
             if imdbid != '':
                 print("Fetching movie info with IMDB id {}...".format(
-                    d['imdb_id']))
-                a = ImdbHandler.FetchMovieByIMDBID(d['imdb_id'])
+                    data['imdb_id']))
+                movie_data = ImdbHandler.FetchMovieByIMDBID(data['imdb_id'])
                 print("...Done!")
 
-                if a['boscore'] == 0 and not force_save:
+                if movie_data['boscore'] == 0 and not force_save:
                     data = {
                         "message": ("Box office score is not available, so"
                                     " it'll be set to 0. Do you still want"
@@ -305,7 +352,7 @@ class addmovie_leaderboard(View):
                         data=data,
                         status=status_code
                     )
-                if a['rtscore'] == 0 and not force_save:
+                if movie_data['rtscore'] == 0 and not force_save:
                     data = {
                         "message": ("Rotten tomatoes rating not available, so it"
                                     "'ll be set to 0. Do you still  want to"
@@ -317,14 +364,14 @@ class addmovie_leaderboard(View):
                         status=status_code
                     )
             else:
-                a = {'rtscore': 0,
-                     "boscore": 0,
-                     "box_office": 0,
-                     "type": "upcomming"
+                movie_data = {'rtscore': 0,
+                              "boscore": 0,
+                              "box_office": 0,
+                              "type": "upcoming"
                      }
-            print("The movie info: {}".format(a))
+            print("The movie info: {}".format(movie_data))
             user = User.objects.get(username=email)
-            movie_object = Movies.AddMovie(a)
+            movie_object = Movies.AddMovie(movie_data)
             map = map_userMovie.objects.create(uobj=user, mobj=movie_object)
             map.save()
             user.score += movie_object.totalscore
@@ -336,50 +383,6 @@ class addmovie_leaderboard(View):
                                 " some movies before adding new ones.")}
             status_code = status.HTTP_406_NOT_ACCEPTABLE
             return JsonResponse(data=data, status=status_code)
-
-
-paginator = ''
-page = ''
-
-
-class SearchMovie(View):
-    template_name = 'home.html'
-    form = MovieSearchForm()
-    movie_title = ''
-    statucpaginator = ''
-
-    def post(self, request):
-        try:
-            self.movie_title = request.POST['movie_title']
-            a = ImdbHandler.FetchMovieByTitle(self.movie_title)
-            global paginator
-            paginator = Paginator(a, 10)
-            movies = paginator.page(1)
-            return render(request, self.template_name,
-                          {'search_form': self.form, 'block': "block",
-                           'movies': movies, 'length': len(movies)})
-        except Exception as e:
-            print(e)
-            return redirect('/home/')
-
-    def get(self, request):
-        try:
-            fname = User.get_user_instance(request.session['movie_session'])
-            global page
-            page = request.GET.get('page', 1)
-            try:
-                movies = paginator.page(page)
-            except PageNotAnInteger:
-                movies = paginator.page(1)
-            except EmptyPage:
-                movies = paginator.page(paginator.num_pages)
-        except Exception as e:
-            print('The exception which occured: {}'.format(e))
-            movies = paginator.page(paginator.num_pages)
-        return render(request, self.template_name,
-                      {'search_form': self.form, "fname": fname.first_name,
-                       'block': "block", 'movies': movies,
-                       'length': len(movies)})
 
 
 class ProfileView(View):
@@ -431,7 +434,8 @@ class ProfileView(View):
             return redirect('/web/login/')
 
 
-class MyMovies(View):
+class MyMoviesView(View):
+
     template = 'mymovies.html'
 
     def get(self, request):
