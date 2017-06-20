@@ -3,7 +3,7 @@ This is the url configuration file for the web module.
 @author info@asquarexpert.com
 """
 
-from django.conf.urls import url,include
+from django.conf.urls import url, include
 from django.contrib import admin
 from apps.web import views
 urlpatterns = [

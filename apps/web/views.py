@@ -20,6 +20,32 @@ from rest_framework import status
 redirect_checker = 0
 
 
+@csrf_exempt
+def signup_auth(request):
+    if request.method == 'POST':
+        data = request.POST
+        username = data['email']
+        password = data['password']
+        first_name = data['Fname']
+        last_name = data['lname']
+        email = username
+        user = User.objects.create(username=username,
+                                   first_name=first_name,
+                                   last_name=last_name,
+                                   email=email)
+        user.save()
+        user.set_password(password)
+        user.save()
+        global redirect_checker
+        redirect_checker = 1
+        user = authenticate(username=username, password=password)
+        request.session['movie_session'] = user.username
+        login(request, user)
+        return redirect('/web/home/')
+    else:
+        return redirect('/web/login/')
+
+
 def load_login_page(request):
     if request.session.get('movie_session'):
         return redirect('/web/home/')
@@ -57,6 +83,16 @@ def login_auth(request):
             return redirect('/web/login/?err=True')
     else:
         return redirect('/web/login/')
+
+
+def logout_view(request):
+    username = request.session.get('movie_session')
+    if username:
+        del request.session['movie_session']
+        logout(request)
+        return redirect('/web/login/')
+    else:
+        return redirect('/web/home/')
 
 
 class LeaderBoardView(View):
@@ -105,41 +141,6 @@ class LeaderBoardView(View):
         except Exception as e:
             print(e)
             return JsonResponse({"status": False})
-
-
-def logout_view(request):
-    username = request.session.get('movie_session')
-    if username:
-        del request.session['movie_session']
-        logout(request)
-        return redirect('/web/login/')
-    else:
-        return redirect('/web/home/')
-
-
-@csrf_exempt
-def signup_auth(request):
-    if request.method == 'POST':
-        data = request.POST
-        username = data['email']
-        password = data['password']
-        first_name = data['Fname']
-        last_name = data['lname']
-        email = username
-        user = User.objects.create(username=username,
-                                   first_name=first_name,
-                                   last_name=last_name,
-                                   email=email)
-        user.save()
-        user.set_password(password)
-        user.save()
-        global redirect_checker
-        redirect_checker = 1
-        user = authenticate(username=username, password=password)
-        login(request, user)
-        return redirect('/web/home/')
-    else:
-        return redirect('/web/login/')
 
 
 def reset_password(request):
