@@ -100,7 +100,7 @@ class LeaderBoardView(View):
     def get(self, request):
         username = request.session.get('movie_session')
         if username:
-            user = User.objects.get(username=username)
+            login_user = User.objects.get(username=username)
             users = User.objects.filter(is_superuser=False).order_by('-score')
             c = 1
             user_info_list = list()
@@ -113,7 +113,7 @@ class LeaderBoardView(View):
                 user_info_list.append(user_info)
                 c = c + 1
             return render(request, 'leaderboard.html',
-                          {"leader_form": user_info_list, "fname": user.first_name})
+                          {"leader_form": user_info_list, "fname": login_user.first_name})
         else:
             return redirect(('/web/login/'))
 
