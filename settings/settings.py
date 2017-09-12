@@ -120,7 +120,10 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-AUTH_USER_MODEL='web.User'
+AUTH_USER_MODEL = 'web.User'
+
+LOGIN_URL = '/web/login/'
+
 # Internationalization
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
 

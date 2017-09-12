@@ -63,10 +63,10 @@ class User(AbstractUser):
         return self.username
 
     class Admin:
-        list_display = ('first_name')
+        list_display = ('first_name', )
 
     class Meta:
-        verbose_name = 'Fantasy Users'
+        verbose_name = 'Fantasy User'
         verbose_name_plural = 'Fantasy Users'
 
     @classmethod
